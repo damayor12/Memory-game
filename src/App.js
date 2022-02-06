@@ -1,0 +1,95 @@
+import { useEffect, useState } from 'react';
+import './App.css';
+import SingleCard from './components/SingleCard';
+
+const cardImages = [
+  { src: '/img/helmet-1.png', matched: false },
+  { src: '/img/potion-1.png', matched: false},
+  { src: '/img/ring-1.png' , matched: false},
+  { src: '/img/scroll-1.png' , matched: false},
+  { src: '/img/shield-1.png' , matched: false},
+  { src: '/img/sword-1.png' , matched: false},
+];
+
+function App() {
+  const [cards, setCards] = useState([]);
+  const [turns, setTurns] = useState(0);
+  const [choiceOne, setChoiceOne] = useState(null);
+  const [choiceTwo, setChoiceTwo] = useState(null);
+  const [disabled, setDisabled] = useState(false);
+
+  //shuffle cards when new game button is clicked
+  const shuffleCards = () => {
+    const shuffledCards = [...cardImages, ...cardImages]
+      .sort(() => 0.5 - Math.random())
+      .map((a) => ({ ...a, id: Math.random() }));
+      setChoiceOne(null)
+      setChoiceTwo(null)
+    setCards(shuffledCards);
+    setTurns(0);
+  };
+
+  // handle a choice
+  const handleChoice = (card) => {
+    choiceOne ? setChoiceTwo(card) : setChoiceOne(card);
+  };
+
+  const resetTurn = () => {
+    setChoiceOne(null);
+    setChoiceTwo(null);
+    setTurns((prev) => prev + 1);
+    setDisabled(false);
+  };
+
+  useEffect(()=>{
+    shuffleCards()
+    setTurns(0)
+  }, [])
+
+  useEffect(() => {
+    
+    if (choiceTwo && choiceOne) {
+      setDisabled(true)
+      // only enters here if choiceTwo and One are truthy or filled
+      // afterwards it resets everything clean
+      if (choiceOne.src === choiceTwo.src) {
+        setCards((prevCards) => {
+          return prevCards.map((card) => (card.src === choiceTwo.src ? { ...card, matched: true } : card));
+        });
+      } else {
+        console.log('No match!!');
+      }
+      setTimeout(() => {
+        resetTurn();
+      }, 1000);
+      ;
+    }
+  }, [choiceOne, choiceTwo]);
+   
+
+  
+console.log('cards current state',cards)
+  
+
+  return (
+    <div className="App">
+      <h1>Magic Match</h1>
+
+      <button onClick={shuffleCards}>New Game</button>
+      <div className="card-grid">
+        {cards.map((card) => (
+          <SingleCard
+            card={card}
+            key={card.id}
+            handleChoice={handleChoice}
+            flipped={card === choiceOne || card === choiceTwo || card.matched}
+            disabled={disabled}
+          />
+        ))}
+      </div>
+      <p>Your turns: {turns}</p>
+    </div>
+  );
+}
+
+export default App;
